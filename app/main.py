@@ -32,7 +32,7 @@ async def read_root():
 async def signup(user: UserSignup):
     query = users.select().where(users.c.username == user.username)
     existing_user = await database.fetch_one(query)
-    if existing_user:
+    if (existing_user):
         raise HTTPException(status_code=400, detail="Username already registered")
 
     hashed_password = get_password_hash(user.password)
@@ -89,7 +89,9 @@ async def get_current_user(authorization: Optional[str] = Header(None)):
 async def create_task(task: TaskCreate, current_user=Depends(get_current_user)):
     query = tasks1.insert().values(
         title=task.title,
+        
         description=task.description,
+        
         time_of_generation=datetime.utcnow(),
         status="active",
         user_id=current_user.id,
@@ -106,11 +108,14 @@ async def create_task(task: TaskCreate, current_user=Depends(get_current_user)):
         "due_date": task.due_date
     }
 # Get all tasks of current user
+
 @app.get("/tasks/", response_model=List[TaskOut])
 async def get_tasks(current_user=Depends(get_current_user)):
-    query = tasks1.select().where(tasks1.c.user_id == current_user["id"])
+    query = tasks1.select().where(tasks1.c.user_id == current_user["id"]).order_by(tasks1.c.id.asc())
     results = await database.fetch_all(query)
+
     return results
+
 
 # Get task by id
 @app.get("/tasks/{task_id}", response_model=TaskOut)

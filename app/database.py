@@ -1,13 +1,18 @@
 from sqlalchemy import create_engine, MetaData
 from databases import Database
 from sqlalchemy.orm import sessionmaker, declarative_base
+from dotenv import load_dotenv
+import os
 
-# PostgreSQL credentials — replace with your own
-DB_USER = "postgres"
-DB_PASSWORD = "12345"
-DB_HOST = "localhost"
-DB_PORT = "5432"
-DB_NAME = "postgres"
+# Load environment variables from .env file
+load_dotenv()
+
+# PostgreSQL credentials from environment variables
+DB_USER = os.getenv("DB_USER", "postgres")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "12345")
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_PORT = os.getenv("DB_PORT", "5432")
+DB_NAME = os.getenv("DB_NAME", "postgres")
 
 # Construct the database URL
 DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
@@ -34,9 +39,10 @@ def get_db():
         yield db
     finally:
         db.close()
-        
+
 
 engine = create_engine(
     DATABASE_URL,
     echo=False  # Turn off SQL statements in console
 )
+

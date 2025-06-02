@@ -24,10 +24,11 @@ class TaskUpdate(TaskBase):
     status: Optional[str] = Field(None, example="completed")
 
 class TaskOut(TaskBase):
-    id: int
-    user_id: int
-    status: str
-    time_of_generation: datetime
+    id: Optional[int] = None
+    user_id: Optional[int] = None
+    status: Optional[str] = None
+    time_of_generation: Optional[datetime] = None
+
 
     model_config = ConfigDict(from_attributes=True)
 
