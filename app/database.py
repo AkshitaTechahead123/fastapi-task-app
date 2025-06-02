@@ -3,7 +3,7 @@ from databases import Database
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 # PostgreSQL credentials — replace with your own
-DB_USER = "akshitasehgal"
+DB_USER = "postgres"
 DB_PASSWORD = "12345"
 DB_HOST = "localhost"
 DB_PORT = "5432"
@@ -34,3 +34,9 @@ def get_db():
         yield db
     finally:
         db.close()
+        
+
+engine = create_engine(
+    DATABASE_URL,
+    echo=False  # Turn off SQL statements in console
+)

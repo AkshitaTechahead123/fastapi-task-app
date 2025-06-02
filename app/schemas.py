@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 from datetime import date, datetime
 
@@ -28,8 +28,7 @@ class TaskOut(TaskBase):
     status: str
     time_of_generation: datetime
 
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 class TokenData(BaseModel):
     username: Optional[str] = None

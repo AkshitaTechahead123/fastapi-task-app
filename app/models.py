@@ -12,8 +12,8 @@ users = Table(
     Column("password", Text, nullable=False),
 )
 
-tasks = Table(
-    "tasks",
+tasks1 = Table(
+    "tasks1",
     metadata,
     Column("id", Integer, primary_key=True),
     Column("title", Text, nullable=False),
