@@ -4,7 +4,7 @@ from app.models import users, tasks1
 from app.schemas import UserSignup, UserLogin, TaskCreate, TaskUpdate, TaskOut
 from app.database import database, metadata, engine
 from app.auth import get_password_hash, verify_password, create_access_token, decode_access_token
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, or_
 from typing import List, Optional
 from datetime import datetime
 
@@ -110,12 +110,28 @@ async def create_task(task: TaskCreate, current_user=Depends(get_current_user)):
 # Get all tasks of current user
 
 @app.get("/tasks/", response_model=List[TaskOut])
-async def get_tasks(current_user=Depends(get_current_user)):
-    query = tasks1.select().where(tasks1.c.user_id == current_user["id"]).order_by(tasks1.c.id.asc())
-    results = await database.fetch_all(query)
+async def get_tasks(search_keyword: Optional[str] = None, current_user=Depends(get_current_user)):
+    # Base query to fetch tasks for the current user
+    query = tasks1.select().where(tasks1.c.user_id == current_user["id"])
 
-    return results
+    # If search_keyword is provided, filter tasks by title, description, or ID
+    if search_keyword:
+        query = query.where(
+            or_(
+                tasks1.c.id == search_keyword if search_keyword.isdigit() else None,
+                tasks1.c.title.ilike(f"%{search_keyword}%"),
+                tasks1.c.description.ilike(f"%{search_keyword}%")
+            )
+        )
 
+    # Order tasks by ID in ascending order
+    query = query.order_by(tasks1.c.id.asc())
+
+    # Execute the query and fetch all matching tasks
+    tasks = await database.fetch_all(query)
+
+    # If no tasks are found, return an empty list
+    return tasks
 
 # Get task by id
 @app.get("/tasks/{task_id}", response_model=TaskOut)
