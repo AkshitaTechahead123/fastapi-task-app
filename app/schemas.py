@@ -25,6 +25,7 @@ class TaskUpdate(TaskBase):
 
 class TaskOut(TaskBase):
     id: int
+    user_id: int
     status: str
     time_of_generation: datetime
 

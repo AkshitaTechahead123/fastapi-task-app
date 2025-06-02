@@ -74,10 +74,7 @@ async def login(user: UserLogin):
 async def get_current_user(authorization: Optional[str] = Header(None)):
     if not authorization:
         raise HTTPException(status_code=401, detail="Authorization header missing")
-    scheme, _, param = authorization.partition(" ")
-    if scheme.lower() != "bearer":
-        raise HTTPException(status_code=401, detail="Invalid authentication scheme")
-    username = decode_access_token(param)
+    username = decode_access_token(authorization)
     if username is None:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
@@ -88,21 +85,26 @@ async def get_current_user(authorization: Optional[str] = Header(None)):
     return user
 
 # Create Task
-@app.post("/tasks/", response_model=TaskOut)
+@app.post("/tasks/", response_model=TaskOut, status_code=status.HTTP_201_CREATED)
 async def create_task(task: TaskCreate, current_user=Depends(get_current_user)):
-    token = create_access_token({"sub": current_user["username"]})
     query = tasks1.insert().values(
         title=task.title,
         description=task.description,
-        token=token,
         time_of_generation=datetime.utcnow(),
         status="active",
-        user_id=current_user["id"],
+        user_id=current_user.id,
         due_date=task.due_date
     )
     task_id = await database.execute(query)
-    return {**task.dict(), "id": task_id, "status": "active", "time_of_generation": datetime.utcnow()}
-
+    return {
+        "id": task_id,
+        "title": task.title,
+        "description": task.description,
+        "status": "active",
+        "time_of_generation": datetime.utcnow(),
+        "user_id": current_user.id,
+        "due_date": task.due_date
+    }
 # Get all tasks of current user
 @app.get("/tasks/", response_model=List[TaskOut])
 async def get_tasks(current_user=Depends(get_current_user)):

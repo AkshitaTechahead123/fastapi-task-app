@@ -2,7 +2,7 @@ from passlib.context import CryptContext
 from datetime import datetime, timedelta
 import jwt
 
-SECRET_KEY = "your_secret_key_here"
+SECRET_KEY = "7a2bb4bfe69c4659833b87fd2a174c52a19a63a0dc34d795ad52b0e9e2c02858"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -23,10 +23,16 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
 
 def decode_access_token(token: str):
     try:
+        print("Decoding token:", token)  # Debugging line
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        print("Decoded payload:", payload)
         username: str = payload.get("sub")
         if username is None:
             return None
         return username
-    except jwt.PyJWTError:
+    except jwt.ExpiredSignatureError:
+        print("Token has expired")
+        return None
+    except jwt.PyJWTError as e:
+        print("Token decoding failed:", str(e))
         return None
