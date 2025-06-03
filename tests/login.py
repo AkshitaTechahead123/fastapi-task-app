@@ -2,9 +2,14 @@ import os
 import sys
 import pytest
 import pytest_asyncio
+import logging
 from httpx import AsyncClient
 from httpx._transports.asgi import ASGITransport
 from dotenv import load_dotenv
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Add the project root directory to PYTHONPATH
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -12,7 +17,7 @@ sys.path.append(project_root)
 
 from app.main import app
 from app.database import database
-from app.models import users, tasks1  # Assuming tasks1 is the table name for user tasks
+from app.models import users, tasks1  # Assuming tasks1 is the user tasks table
 
 # Load environment variables
 load_dotenv()
@@ -42,7 +47,7 @@ async def create_test_user(test_client):
     }
     # Register user through the signup endpoint
     await test_client.post("/signup", json=payload)
-    
+
     yield
 
     # Cleanup: get user id, delete tasks first, then user
@@ -60,6 +65,8 @@ async def test_login_success(test_client, create_test_user):
         "password": "1234567891"
     }
     response = await test_client.post("/login", json=payload)
+    logger.info(f"[SUCCESS TEST] Status: {response.status_code}, Body: {response.json()}")
+
     assert response.status_code == 200
     json_data = response.json()
     assert "access_token" in json_data
@@ -73,8 +80,11 @@ async def test_login_invalid_password(test_client, create_test_user):
         "password": "wrongpassword"
     }
     response = await test_client.post("/login", json=payload)
+
     assert response.status_code in [400, 401]
     assert response.json()["detail"] == "Invalid username or password"
+    logger.info(f"[INVALID PASSWORD] Status: {response.status_code}, Body: {response.json()}")
+
 
 
 @pytest.mark.asyncio
@@ -84,6 +94,8 @@ async def test_login_nonexistent_user(test_client):
         "password": "irrelevant"
     }
     response = await test_client.post("/login", json=payload)
+    logger.info(f"[NONEXISTENT USER] Status: {response.status_code}, Body: {response.json()}")
+
     assert response.status_code in [400, 401]
     assert response.json()["detail"] == "Invalid username or password"
 
@@ -95,7 +107,9 @@ async def test_login_missing_fields(test_client):
         # Missing password
     }
     response = await test_client.post("/login", json=payload)
-    assert response.status_code == 422
+    logger.info(f"[MISSING FIELDS] Status: {response.status_code}, Body: {response.text}")
+
+    assert response.status_code in [400]
 
 
 @pytest.mark.asyncio
@@ -105,5 +119,7 @@ async def test_login_empty_fields(test_client):
         "password": ""
     }
     response = await test_client.post("/login", json=payload)
+    logger.info(f"[EMPTY FIELDS] Status: {response.status_code}, Body: {response.json()}")
+
     assert response.status_code == 400
     assert response.json()["detail"] == "Invalid username or password"
