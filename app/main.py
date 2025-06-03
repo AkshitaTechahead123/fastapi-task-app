@@ -7,6 +7,10 @@ from app.auth import get_password_hash, verify_password, create_access_token, de
 from sqlalchemy import select, and_, or_
 from typing import List, Optional
 from datetime import datetime
+from starlette.status import HTTP_400_BAD_REQUEST
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from fastapi import Request
 
 
 
@@ -27,6 +31,7 @@ async def shutdown():
 async def read_root():
     return {"message": "Welcome to the Task Management API"}
 
+
 # Signup API
 @app.post("/signup", status_code=status.HTTP_201_CREATED)
 async def signup(user: UserSignup):
@@ -44,6 +49,15 @@ async def signup(user: UserSignup):
     )
     await database.execute(query)
     return {"message": "User created successfully"}
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=HTTP_400_BAD_REQUEST,
+        content={"detail": "Missing or invalid fields in request."}
+    )
+
 
 # Login API
 @app.post("/login")
