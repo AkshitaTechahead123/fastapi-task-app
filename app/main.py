@@ -82,7 +82,7 @@ async def login(user: UserLogin):
     )
     await database.execute(query)
 
-    return {"access_token": token, "token_type": "bearer"}
+    return {"access_token": token}
 
 # Dependency to get current user from token
 async def get_current_user(authorization: Optional[str] = Header(None)):

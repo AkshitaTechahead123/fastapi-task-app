@@ -1,6 +1,15 @@
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
-import jwt
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
+from app.database import database
+from app.models import users
+
+
+
+
+
 
 SECRET_KEY = "7a2bb4bfe69c4659833b87fd2a174c52a19a63a0dc34d795ad52b0e9e2c02858"
 ALGORITHM = "HS256"
@@ -33,6 +42,8 @@ def decode_access_token(token: str):
     except jwt.ExpiredSignatureError:
         print("Token has expired")
         return None
-    except jwt.PyJWTError as e:
+    except jwt.JWTError as e:
         print("Token decoding failed:", str(e))
         return None
+
+
